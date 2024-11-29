@@ -9,7 +9,7 @@ import numpy as np
 
 # loading the model to predict on the data
 try:
-    model = tf.keras.models.load_model('model_name.h5')  # Replace 'model_name.h5' with your actual model filename
+    model = tf.keras.models.load_model('modelANN2.h5')
 except Exception as e:
     st.error(f"Error loading model: {e}")
 
@@ -17,18 +17,16 @@ except Exception as e:
 finance_mapping = {'Stabil': 0, 'Tidak/Kurang Stabil': 1}
 social_mapping = {'Dapat bersosialisasi dengan baik': 0, 'Bermasalah, sulit bersosialisasi': 1, 'Sedikit bermasalah, perlu perhatian khusus': 2}
 health_mapping = {'Kurang sehat/kondisi fisik-rohani lemah': 0, 'Sehat jasmani-rohani': 1, 'Sehat (secara umum)': 2}
-parents_mapping = {'Ada': 1, 'Tidak Ada': 0}
-has_nurs_mapping = {'Baik': 1, 'Kurang Baik': 0}
-form_mapping = {'Form1': 0, 'Form2': 1}  # You need to provide appropriate mapping here based on your dataset
-children_mapping = {'0': 0, '1': 1, '2': 2}  # Adjust based on actual categories
-housing_mapping = {'Stabil': 0, 'Tidak Stabil': 1}  # Adjust based on your dataset
-# Add mappings for any other required attributes...
+parents_mapping = {'Great Pretentious': 0, 'Pretentious': 1, 'Kalangan Umum': 2}
+has_nurs_mapping = {'Critical': 0, 'Tidak Proper': 1, 'Kurang Proper/Baik': 2, 'Sangat Baik': 3}
+form_mapping = {'Lengkap': 0, 'Terpenuhi': 1, 'Keluarga Asuh': 2, 'Tidak Lengkap': 3}
+children_mapping = {'1': 0, '2': 1, '3': 2, 'Lebih dari 3': 3}
+housing_mapping = {'Baik': 0, 'Critical': 1, 'Kurang baik': 2}
 
-# PCA initialization (Assuming you've trained your PCA model earlier)
+# PCA initialization
 pca = PCA(n_components=6)  # Since PCA is reducing to 6 components
 
-# Load your PCA transformation matrix (use actual transformation from your previous step)
-# Example: Assuming this is the result from your previous PCA fitting
+# Load your PCA transformation matrix
 pca_components = np.array([[-1.25718073e-03, 9.99897781e-01, 1.25525987e-02, 2.96572896e-03,
                             -2.40280869e-03, -3.91688915e-03, 3.91249057e-03, 2.44537557e-04],
                            [2.21585840e-03, -9.18134006e-03, 8.54527864e-01, -5.19246423e-01,
@@ -73,13 +71,18 @@ def prediction(parents, has_nurs, form, children, housing, finance, social, heal
 
     return prediction[0]
 
-def save_data_to_json(email, name, tempat, tanggal_lahir, jnsKelamin, finance, social, health, result):
+def save_data_to_json(email, name, tempat, tanggal_lahir, jnsKelamin, parents, has_nurs, form, children, housing, finance, social, health, result):
     data = {
         "email": email,
         "name": name,
         "tempat_lahir": tempat,
         "tanggal_lahir": tanggal_lahir.strftime('%Y-%m-%d'),  # Convert date to string
         "jenis_kelamin": jnsKelamin,
+        "status_ortu": parents,
+        "kamar_anak": has_nurs,
+        "kelengkapan_keluarga": form,
+        "jumlah_anak": children,
+        "kondisi_tmpt_tinggal": housing,
         "keuangan": finance,
         "kehidupan_sosial": social,
         "kesehatan": health,
@@ -118,6 +121,21 @@ def main():
     jnsKelamin = st.radio("Pilih jenis kelamin", ("Laki-laki", "Perempuan"))
 
     # Inputs for PCA
+    parents_opt = ['Great Pretentious', 'Pretentious', 'Kalangan Umum']
+    parents = st.selectbox("Status Orang Tua", parents_opt)
+
+    has_nurs_opt = ['Critical', 'Tidak Proper', 'Kurang Proper/Baik', 'Sangat Baik']
+    has_nurs = st.selectbox("Kondisi kamar anak", has_nurs_opt)
+
+    form_opt = ['Lengkap', 'Terpenuhi', 'Keluarga Asuh', 'Tidak Lengkap']
+    form = st.selectbox("Kelengkapan keluarga", form_opt)
+
+    children_opt = ['1', '2', '3', 'Lebih dari 3']
+    children = st.selectbox("Jumlah anak", form_opt)
+
+    housing_opt = ['Baik', 'Critical', 'Kurang baik']
+    housing = st.selectbox("Kondisi tempat tinggal", housing_opt)
+
     finance_opt = ['Stabil', 'Tidak/Kurang Stabil']
     finance = st.selectbox("Keuangan Orang Tua", finance_opt)
 
@@ -127,12 +145,6 @@ def main():
     health_opt = ['Sehat jasmani-rohani', 'Sehat (secara umum)', 'Kurang sehat/kondisi fisik-rohani lemah']
     health = st.selectbox("Kesehatan Anak", health_opt)
 
-    parents = st.selectbox("Apakah orang tua ada?", ['Ada', 'Tidak Ada'])
-    has_nurs = st.selectbox("Kondisi pelayanan kesehatan anak", ['Baik', 'Kurang Baik'])
-    form = st.selectbox("Jenis formulir", ['Form1', 'Form2'])
-    children = st.number_input("Jumlah anak", min_value=0, max_value=10)
-    housing = st.selectbox("Kondisi tempat tinggal", ['Stabil', 'Tidak Stabil'])
-
     # Initialize result
     result = ""
 
@@ -141,12 +153,12 @@ def main():
         result = prediction(parents, has_nurs, form, children, housing, finance, social, health)
         print(result)
 
-        if result == 1:
-            output_message = "Selamat! Anak Anda diterima di PAUD. Kami sangat senang menyambutnya di keluarga kami."
-            save_data_to_json(email, name, tempat, tanggal_lahir, jnsKelamin, finance, social, health, result)
-        elif result == 2:
+        if result == 1 or result == 3:
             output_message = "Selamat! Kami dengan penuh sukacita mengumumkan bahwa anak Anda telah diterima di PAUD."
-            save_data_to_json(email, name, tempat, tanggal_lahir, jnsKelamin, finance, social, health, result)
+            save_data_to_json(email, name, tempat, tanggal_lahir, jnsKelamin, parents, has_nurs, form, children, housing, finance, social, health, result)
+        elif result == 2 or result == 4:
+            output_message = "Selamat! Anak Anda diterima di PAUD. Kami sangat senang menyambutnya di keluarga kami."
+            save_data_to_json(email, name, tempat, tanggal_lahir, jnsKelamin, parents, has_nurs, form, children, housing, finance, social, health, result)
         elif result == 0:
             output_message = "Maaf, anak Anda tidak diterima di PAUD kali ini. Terima kasih atas partisipasi Anda!"
 
