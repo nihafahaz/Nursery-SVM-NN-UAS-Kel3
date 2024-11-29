@@ -1,10 +1,13 @@
-# import required library
+# Import required libraries
+import tensorflow as tf
 import streamlit as st
 import pickle
 import json
 import os  # Import os to check if file exists
+import numpy as np
+from sklearn.decomposition import PCA
 
-# loading the model to predict on the data
+# Loading the model to predict on the data
 try:
     model = tf.keras.models.load_model('modelANN2.h5')
 except Exception as e:
@@ -51,13 +54,15 @@ def prediction(parents, has_nurs, form, children, housing, finance, social, heal
     social_encoded = social_mapping[social]
     health_encoded = health_mapping[health]
 
-    # cek kesesuaian
-    print(f"Encoded values: Finance: {finance_encoded}, Social: {social_encoded}, Health: {health_encoded}")
+    # Preparing the encoded data for PCA transformation
+    encoded_input = np.array([[parents_encoded, has_nurs_encoded, form_encoded, children_encoded,
+                               housing_encoded, finance_encoded, social_encoded, health_encoded]])
 
-    # membuat prediksi model 
-    prediction = model.predict(
-        [[social_encoded, finance_encoded, health_encoded]]
-    )
+    # Apply PCA transformation
+    pca_input = pca.transform(encoded_input)  # Transform using PCA components
+
+    # Making prediction with the transformed data
+    prediction = model.predict(pca_input)
 
     return prediction[0]
 
@@ -97,13 +102,13 @@ def save_data_to_json(email, name, tempat, tanggal_lahir, jnsKelamin, parents, h
         json.dump(existing_data, file, indent=4)
 
 def main():
-    # judul program
+    # Program title
     st.title('Pendaftaran Anak PAUD')
     st.write('By Kelompok 3')
     long_text = ">>> Isi formulir ini dengan sepenuh hati. Pastikan semua informasi yang Anda berikan adalah yang sebenarnya. <<<"
     st.markdown(f'<div style="white-space: pre-wrap;">{long_text}</div>', unsafe_allow_html=True)
 
-    #input data by user
+    # User input data
     email = st.text_input("Masukkan alamat email Anda: ")
     name = st.text_input("Masukkan nama putra/i Anda: ")
     tempat = st.text_input("Tempat lahir putra/i Anda:")
@@ -121,7 +126,7 @@ def main():
     form = st.selectbox("Kelengkapan keluarga", form_opt)
 
     children_opt = ['1', '2', '3', 'Lebih dari 3']
-    children = st.selectbox("Jumlah anak", form_opt)
+    children = st.selectbox("Jumlah anak", children_opt)
 
     housing_opt = ['Baik', 'Critical', 'Kurang baik']
     housing = st.selectbox("Kondisi tempat tinggal", housing_opt)
@@ -138,9 +143,9 @@ def main():
     # Initialize result
     result = ""
 
-    # predict button
+    # Predict button
     if st.button("Submit"):
-        result = prediction(social, finance, health)
+        result = prediction(parents, has_nurs, form, children, housing, finance, social, health)
         print(result)
 
         if result == 1 or result == 3:
@@ -154,5 +159,5 @@ def main():
 
         st.success(output_message)
 
-if __name__=='__main__':
+if __name__ == '__main__':
     main()
