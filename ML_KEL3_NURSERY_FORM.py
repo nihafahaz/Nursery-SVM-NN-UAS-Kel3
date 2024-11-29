@@ -1,11 +1,8 @@
-# import required libraries
+# import required library
 import streamlit as st
-import tensorflow as tf
-import os  # Import os to check if file exists
+import pickle
 import json
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import LabelEncoder
-import numpy as np
+import os  # Import os to check if file exists
 
 # loading the model to predict on the data
 try:
@@ -54,20 +51,13 @@ def prediction(parents, has_nurs, form, children, housing, finance, social, heal
     social_encoded = social_mapping[social]
     health_encoded = health_mapping[health]
 
-    # Check the encoded values
-    print(f"Encoded values: Parents: {parents_encoded}, Has_nurs: {has_nurs_encoded}, Form: {form_encoded}, "
-          f"Children: {children_encoded}, Housing: {housing_encoded}, Finance: {finance_encoded}, "
-          f"Social: {social_encoded}, Health: {health_encoded}")
+    # cek kesesuaian
+    print(f"Encoded values: Finance: {finance_encoded}, Social: {social_encoded}, Health: {health_encoded}")
 
-    # Prepare input for PCA transformation
-    encoded_input = np.array([[parents_encoded, has_nurs_encoded, form_encoded, children_encoded,
-                               housing_encoded, finance_encoded, social_encoded, health_encoded]])
-
-    # Transform input to PCA components
-    pca_input = pca.transform(encoded_input)
-
-    # Use PCA transformed input for model prediction
-    prediction = model.predict(pca_input)
+    # membuat prediksi model 
+    prediction = model.predict(
+        [[social_encoded, finance_encoded, health_encoded]]
+    )
 
     return prediction[0]
 
@@ -107,13 +97,13 @@ def save_data_to_json(email, name, tempat, tanggal_lahir, jnsKelamin, parents, h
         json.dump(existing_data, file, indent=4)
 
 def main():
-    # Title and intro text
+    # judul program
     st.title('Pendaftaran Anak PAUD')
     st.write('By Kelompok 3')
     long_text = ">>> Isi formulir ini dengan sepenuh hati. Pastikan semua informasi yang Anda berikan adalah yang sebenarnya. <<<"
     st.markdown(f'<div style="white-space: pre-wrap;">{long_text}</div>', unsafe_allow_html=True)
 
-    # User input fields
+    #input data by user
     email = st.text_input("Masukkan alamat email Anda: ")
     name = st.text_input("Masukkan nama putra/i Anda: ")
     tempat = st.text_input("Tempat lahir putra/i Anda:")
@@ -148,9 +138,9 @@ def main():
     # Initialize result
     result = ""
 
-    # Prediction button
+    # predict button
     if st.button("Submit"):
-        result = prediction(parents, has_nurs, form, children, housing, finance, social, health)
+        result = prediction(social, finance, health)
         print(result)
 
         if result == 1 or result == 3:
@@ -160,9 +150,9 @@ def main():
             output_message = "Selamat! Anak Anda diterima di PAUD. Kami sangat senang menyambutnya di keluarga kami."
             save_data_to_json(email, name, tempat, tanggal_lahir, jnsKelamin, parents, has_nurs, form, children, housing, finance, social, health, result)
         elif result == 0:
-            output_message = "Maaf, anak Anda tidak diterima di PAUD kali ini. Terima kasih atas partisipasi Anda!"
+            output_message = "Maaf, anak Anda tidak diterima di PAUD kali ini. Kami mengucapkan terima kasih atas partisipasi Anda dan semoga sukses di masa depan!"
 
         st.success(output_message)
 
-if __name__ == '__main__':
+if __name__=='__main__':
     main()
