@@ -1,12 +1,11 @@
 # import required library
 import streamlit as st
-import pickle
-import json
+import tensorflow as tf
 import os  # Import os to check if file exists
 
 # loading the model to predict on the data
 try:
-    model = pickle.load(open('rbf_model.pkl', 'rb'))
+    model = tf.keras.models.load_model('model_name.h5')  # Replace 'model_name.h5' with your actual model filename
 except Exception as e:
     st.error(f"Error loading model: {e}")
 
