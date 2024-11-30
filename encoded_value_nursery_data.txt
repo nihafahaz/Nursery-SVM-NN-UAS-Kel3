@@ -1,0 +1,46 @@
+parents:
+0: great pretentious
+1: pretentious
+2: usual
+
+has_nurs:
+0: critical
+1: improper
+2: less proper
+3: proper
+
+form:
+0: complete
+1: completed
+2: foster
+3: incomplete
+
+children:
+0: 1
+1: 2
+2: 3
+3: more
+
+housing:
+0: convenient
+1: critical
+2: less_convenient
+
+finance:
+0: convenient
+1: inconvenient
+
+social:
+0: non problematic
+1: problematic
+2: slightly problematic
+
+health:
+0: not recommended
+1: priority
+2: recommended
+
+class:
+0: not recommended
+1: priority
+2: spec_prior
