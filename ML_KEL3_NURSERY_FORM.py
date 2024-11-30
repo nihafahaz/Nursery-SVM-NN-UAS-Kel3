@@ -1,13 +1,13 @@
-# Import required libraries
-import tensorflow as tf
+# import required libraries
 import streamlit as st
-import pickle
-import json
+import tensorflow as tf
 import os  # Import os to check if file exists
-import numpy as np
+import json
 from sklearn.decomposition import PCA
+from sklearn.preprocessing import LabelEncoder
+import numpy as np
 
-# Loading the model to predict on the data
+# loading the model to predict on the data
 try:
     model = tf.keras.models.load_model('modelANN2.h5')
 except Exception as e:
@@ -54,19 +54,35 @@ def prediction(parents, has_nurs, form, children, housing, finance, social, heal
     social_encoded = social_mapping[social]
     health_encoded = health_mapping[health]
 
-    # Preparing the encoded data for PCA transformation
+    # Prepare input for PCA transformation
     encoded_input = np.array([[parents_encoded, has_nurs_encoded, form_encoded, children_encoded,
                                housing_encoded, finance_encoded, social_encoded, health_encoded]])
 
-    # Apply PCA transformation
-    pca_input = pca.transform(encoded_input)  # Transform using PCA components
+    # Transform input to PCA components
+    pca_input = pca.transform(encoded_input)
 
-    # Making prediction with the transformed data
+    # Use PCA transformed input for model prediction
     prediction = model.predict(pca_input)
 
-    return prediction[0]
+    # Get the class with the highest probability
+    predicted_class = np.argmax(prediction)  # Returns the index of the highest value
+
+    return predicted_class
+
 
 def save_data_to_json(email, name, tempat, tanggal_lahir, jnsKelamin, parents, has_nurs, form, children, housing, finance, social, health, result):
+    def convert_to_serializable(data):
+        if isinstance(data, dict):
+            return {key: convert_to_serializable(value) for key, value in data.items()}
+        elif isinstance(data, list):
+            return [convert_to_serializable(item) for item in data]
+        elif isinstance(data, np.int64):
+            return int(data)
+        elif isinstance(data, np.float64):
+            return float(data)
+        else:
+            return data
+
     data = {
         "email": email,
         "name": name,
@@ -86,13 +102,18 @@ def save_data_to_json(email, name, tempat, tanggal_lahir, jnsKelamin, parents, h
 
     file_name = 'data_anak_lolos.json'
 
-    # Check if the file exists
+    # Check if the file exists and is not empty
     if os.path.exists(file_name):
-        # Read existing data
-        with open(file_name, 'r') as file:
-            existing_data = json.load(file)
+        try:
+            with open(file_name, 'r') as file:
+                existing_data = json.load(file)
+        except json.JSONDecodeError:  # Handle the case of an empty or invalid JSON file
+            existing_data = []
     else:
         existing_data = []
+
+    # Convert the data to a serializable format
+    data = convert_to_serializable(data)
 
     # Append new data
     existing_data.append(data)
@@ -101,14 +122,15 @@ def save_data_to_json(email, name, tempat, tanggal_lahir, jnsKelamin, parents, h
     with open(file_name, 'w') as file:
         json.dump(existing_data, file, indent=4)
 
+
 def main():
-    # Program title
+    # Title and intro text
     st.title('Pendaftaran Anak PAUD')
     st.write('By Kelompok 3')
     long_text = ">>> Isi formulir ini dengan sepenuh hati. Pastikan semua informasi yang Anda berikan adalah yang sebenarnya. <<<"
     st.markdown(f'<div style="white-space: pre-wrap;">{long_text}</div>', unsafe_allow_html=True)
 
-    # User input data
+    # User input fields
     email = st.text_input("Masukkan alamat email Anda: ")
     name = st.text_input("Masukkan nama putra/i Anda: ")
     tempat = st.text_input("Tempat lahir putra/i Anda:")
@@ -143,7 +165,7 @@ def main():
     # Initialize result
     result = ""
 
-    # Predict button
+    # Prediction button
     if st.button("Submit"):
         result = prediction(parents, has_nurs, form, children, housing, finance, social, health)
         print(result)
@@ -155,7 +177,7 @@ def main():
             output_message = "Selamat! Anak Anda diterima di PAUD. Kami sangat senang menyambutnya di keluarga kami."
             save_data_to_json(email, name, tempat, tanggal_lahir, jnsKelamin, parents, has_nurs, form, children, housing, finance, social, health, result)
         elif result == 0:
-            output_message = "Maaf, anak Anda tidak diterima di PAUD kali ini. Kami mengucapkan terima kasih atas partisipasi Anda dan semoga sukses di masa depan!"
+            output_message = "Maaf, anak Anda tidak diterima di PAUD kali ini. Terima kasih atas partisipasi Anda!"
 
         st.success(output_message)
 

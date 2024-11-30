@@ -1,0 +1,34 @@
+[
+    {
+        "email": "agis1966@gmail.com",
+        "name": "",
+        "tempat_lahir": "",
+        "tanggal_lahir": "2024-11-30",
+        "jenis_kelamin": "Laki-laki",
+        "status_ortu": "Great Pretentious",
+        "kamar_anak": "Critical",
+        "kelengkapan_keluarga": "Lengkap",
+        "jumlah_anak": "1",
+        "kondisi_tmpt_tinggal": "Baik",
+        "keuangan": "Stabil",
+        "kehidupan_sosial": "Dapat bersosialisasi dengan baik",
+        "kesehatan": "Sehat jasmani-rohani",
+        "result": 1
+    },
+    {
+        "email": "nonei22@gmail.com",
+        "name": "Marcel",
+        "tempat_lahir": "Jakarta",
+        "tanggal_lahir": "2021-01-08",
+        "jenis_kelamin": "Laki-laki",
+        "status_ortu": "Kalangan Umum",
+        "kamar_anak": "Kurang Proper/Baik",
+        "kelengkapan_keluarga": "Lengkap",
+        "jumlah_anak": "Lebih dari 3",
+        "kondisi_tmpt_tinggal": "Baik",
+        "keuangan": "Stabil",
+        "kehidupan_sosial": "Dapat bersosialisasi dengan baik",
+        "kesehatan": "Sehat jasmani-rohani",
+        "result": 1
+    }
+]
