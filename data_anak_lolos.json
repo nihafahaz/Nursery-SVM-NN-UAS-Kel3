@@ -1,3 +1,13 @@
 [
-    
+    {
+        "email": "nonei22@gmail.com",
+        "name": "Marcel",
+        "tempat_lahir": "Medan",
+        "tanggal_lahir": "2020-09-15",
+        "jenis_kelamin": "Laki-laki",
+        "keuangan": "Stabil",
+        "kehidupan_sosial": "Dapat bersosialisasi dengan baik",
+        "kesehatan": "Sehat (secara umum)",
+        "result": 1
+    }
 ]
